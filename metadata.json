@@ -1,0 +1,7 @@
+{
+  "name": "Fluentify - AI Speaking Practice",
+  "description": "An MVP for a language speaking practice app using React and the Gemini API. Get daily prompts, practice speaking in a live conversation with an AI, and review your conversation transcripts.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
