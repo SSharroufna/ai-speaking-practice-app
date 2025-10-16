@@ -105,9 +105,10 @@ const HomePage: React.FC<HomePageProps> = ({ saveSessionLog }) => {
 
   const handleStartSession = () => {
     if (!currentPrompt) return;
-    let systemInstruction = "You are a friendly and patient language practice partner. Keep your responses very short, ideally 1-2 sentences, to keep the conversation flowing. Be encouraging and natural, like in a real, fast-paced chat.";
+    const englishOnlyInstruction = "You must speak only in English.";
+    let systemInstruction = `You are a friendly and patient English language practice partner. ${englishOnlyInstruction} Keep your responses very short, ideally 1-2 sentences, to keep the conversation flowing. Be encouraging and natural, like in a real, fast-paced chat.`;
     if (currentPrompt.type === 'scenario' && currentPrompt.aiRole) {
-      systemInstruction = `You are acting as ${currentPrompt.aiRole}. Respond to the user naturally within that role, keeping your responses very short (1-2 sentences). Begin the conversation.`;
+      systemInstruction = `You are acting as ${currentPrompt.aiRole}. Your role is to help the user practice speaking English in this scenario. ${englishOnlyInstruction} Respond to the user naturally within that role, keeping your responses very short (1-2 sentences). Begin the conversation.`;
     }
     startSession(systemInstruction);
   };

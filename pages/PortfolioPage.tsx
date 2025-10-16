@@ -13,22 +13,22 @@ interface HistoryPageProps {
 }
 
 const PromptDisplay: React.FC<{ prompt: Prompt }> = ({ prompt }) => {
-    switch (prompt.type) {
-        case 'image':
-            return (
-                <div className="space-y-2">
-                    <CardTitle>{prompt.content}</CardTitle>
-                    <div className="rounded-md overflow-hidden border max-w-sm">
-                       <img src={prompt.imageUrl} alt="Practice prompt" className="w-full h-auto object-cover"/>
-                    </div>
-                </div>
-            );
-        case 'scenario':
-            return <CardTitle>{prompt.title}: {prompt.content}</CardTitle>;
-        case 'conversation':
-        default:
-            return <CardTitle>{prompt.content}</CardTitle>;
-    }
+  switch (prompt.type) {
+    case 'image':
+      return (
+          <div className="space-y-2">
+            <CardTitle>{prompt.content}</CardTitle>
+            <div className="rounded-md overflow-hidden border max-w-sm">
+              <img src={prompt.imageUrl} alt="Practice prompt" className="w-full h-auto object-cover"/>
+            </div>
+          </div>
+      );
+    case 'scenario':
+      return <CardTitle>{prompt.title}: {prompt.content}</CardTitle>;
+    case 'conversation':
+    default:
+      return <CardTitle>{prompt.content}</CardTitle>;
+  }
 };
 
 
@@ -41,12 +41,12 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ sessionLogs, updateSessionLog
     try {
       const userAnswer = log.transcript[messageIndex].text;
       const question = messageIndex === 0
-        ? log.prompt.content
-        : log.transcript[messageIndex - 1]?.text;
+          ? log.prompt.content
+          : log.transcript[messageIndex - 1]?.text;
 
       if (!userAnswer || !question) return;
 
-      const prompt = `You are an expert English language tutor. A student has provided an answer to a question during a speaking practice session.
+      const prompt = `You are an expert English language tutor. You must write your entire response only in English. A student has provided an answer to a question during a speaking practice session.
       The context/question was: "${question}"
       The student's answer was:
       ---
@@ -102,15 +102,15 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ sessionLogs, updateSessionLog
   const generateVocabularyForSession = async (log: SessionLog) => {
     try {
       const transcriptText = log.transcript
-        .map(msg => `${msg.speaker === 'user' ? 'Student' : 'AI'}: ${msg.text}`)
-        .join('\n');
+          .map(msg => `${msg.speaker === 'user' ? 'Student' : 'AI'}: ${msg.text}`)
+          .join('\n');
 
-      const prompt = `You are an expert English language tutor. Analyze the following conversation transcript between a student and an AI. Identify 3-5 of the most important vocabulary words or phrases for the student to learn based on their responses. For each item, provide the word/phrase, a simple definition, and a clear example sentence. Focus on items that will most improve their fluency.
+      const prompt = `You are an expert English language tutor. You must write your entire response only in English. Analyze the following conversation transcript between a student and an AI. Identify 3-5 of the most important vocabulary words or phrases for the student to learn based on their responses. For each item, provide the word/phrase, a simple definition, and a clear example sentence. Focus on items that will most improve their fluency.
       Here is the transcript:
       ---
       ${transcriptText}
       ---`;
-      
+
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: prompt,
@@ -130,21 +130,21 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ sessionLogs, updateSessionLog
           }
         }
       });
-      
+
       const vocabList: {word: string, definition: string, exampleSentence: string}[] = JSON.parse(response.text);
       const newVocabItems: SavedVocabItem[] = vocabList.map(item => ({
         ...item,
         id: `${log.id}-${item.word}`,
         sessionId: log.id,
       }));
-      
+
       addVocabItems(newVocabItems);
       markVocabAsGenerated(log.id);
 
     } catch (e: any) {
-       console.error(`Failed to generate vocabulary for session ${log.id}:`, e);
-       setError(`Failed to generate vocabulary. Error: ${e.message || 'Unknown error'}`);
-       // Don't rethrow, as feedback might have succeeded
+      console.error(`Failed to generate vocabulary for session ${log.id}:`, e);
+      setError(`Failed to generate vocabulary. Error: ${e.message || 'Unknown error'}`);
+      // Don't rethrow, as feedback might have succeeded
     }
   };
 
@@ -155,9 +155,9 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ sessionLogs, updateSessionLog
     try {
       // Step 1: Generate turn-by-turn feedback
       const feedbackPromises = log.transcript
-        .map((message, index) => ({ message, index }))
-        .filter(({ message }) => message.speaker === 'user' && !message.feedback)
-        .map(({ index }) => generateFeedbackForMessage(log, index));
+          .map((message, index) => ({ message, index }))
+          .filter(({ message }) => message.speaker === 'user' && !message.feedback)
+          .map(({ index }) => generateFeedbackForMessage(log, index));
 
       await Promise.all(feedbackPromises);
 
@@ -186,125 +186,125 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ sessionLogs, updateSessionLog
 
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Practice History</h1>
-        <p className="text-muted-foreground">Review your past conversations and get AI feedback for your answers.</p>
-      </div>
-      {error && <p className="mb-4 text-center text-destructive bg-destructive/10 p-3 rounded-md">{error}</p>}
-      {sessionLogs.length === 0 ? (
-        <div className="text-center py-16 border-2 border-dashed rounded-lg">
-          <p className="text-muted-foreground">You don't have any saved sessions yet.</p>
-          <p className="text-sm text-muted-foreground">Complete a practice session to see it here.</p>
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold tracking-tight">Practice History</h1>
+          <p className="text-muted-foreground">Review your past conversations and get AI feedback for your answers.</p>
         </div>
-      ) : (
-        <div className="space-y-6">
-          {sessionLogs.slice().reverse().map(log => (
-            <Card key={log.id}>
-              <CardHeader>
-                <div className="flex justify-between items-start gap-4">
-                    <div>
-                        <PromptDisplay prompt={log.prompt} />
-                        <CardDescription>
-                          Practiced on: {new Date(log.timestamp).toLocaleString()}
-                        </CardDescription>
-                    </div>
-                     <Button
-                        onClick={() => handleAnalyzeSession(log)}
-                        disabled={loadingFeedbackId === log.id || log.vocabularyGenerated}
-                        className="flex-shrink-0"
-                     >
-                         {loadingFeedbackId === log.id ? (
-                            <>
-                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
-                             Analyzing...
-                            </>
-                         ) : log.vocabularyGenerated ? '✓ Analyzed' : 'Analyze Session'}
-                     </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <h4 className="font-semibold text-lg mb-4">Conversation & Feedback</h4>
-                <div className="space-y-6">
-                  {log.transcript.map((message, index) => (
-                    <div key={index}>
-                      <div className={`flex items-start gap-3 ${message.speaker === 'user' ? 'justify-end' : ''}`}>
-                        {message.speaker === 'ai' && <div className="w-8 h-8 rounded-full bg-secondary flex-shrink-0 flex items-center justify-center font-bold text-sm">AI</div>}
-                        <div className={`p-3 rounded-lg max-w-md ${ message.speaker === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground' }`}>
-                          <p className="text-sm">{message.text}</p>
+        {error && <p className="mb-4 text-center text-destructive bg-destructive/10 p-3 rounded-md">{error}</p>}
+        {sessionLogs.length === 0 ? (
+            <div className="text-center py-16 border-2 border-dashed rounded-lg">
+              <p className="text-muted-foreground">You don't have any saved sessions yet.</p>
+              <p className="text-sm text-muted-foreground">Complete a practice session to see it here.</p>
+            </div>
+        ) : (
+            <div className="space-y-6">
+              {sessionLogs.slice().reverse().map(log => (
+                  <Card key={log.id}>
+                    <CardHeader>
+                      <div className="flex justify-between items-start gap-4">
+                        <div>
+                          <PromptDisplay prompt={log.prompt} />
+                          <CardDescription>
+                            Practiced on: {new Date(log.timestamp).toLocaleString()}
+                          </CardDescription>
                         </div>
-                        {message.speaker === 'user' && <div className="w-8 h-8 rounded-full bg-muted flex-shrink-0 flex items-center justify-center font-bold text-sm">You</div>}
+                        <Button
+                            onClick={() => handleAnalyzeSession(log)}
+                            disabled={loadingFeedbackId === log.id || log.vocabularyGenerated}
+                            className="flex-shrink-0"
+                        >
+                          {loadingFeedbackId === log.id ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                                Analyzing...
+                              </>
+                          ) : log.vocabularyGenerated ? '✓ Analyzed' : 'Analyze Session'}
+                        </Button>
                       </div>
-
-                      {message.speaker === 'user' && message.feedback && (
-                        <div className="mt-3 flex justify-end">
-                          <div className="w-full max-w-md space-y-3">
-                            <div className="p-4 rounded-lg bg-muted/50 border">
-                              <h5 className="font-semibold mb-3">Feedback on Your Answer</h5>
-                              <div className="space-y-4 text-sm">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                                  {/* Column 1 */}
-                                  <div className="space-y-4">
-                                    <div>
-                                      <h6 className="font-medium">Grammar</h6>
-                                      <ul className="list-disc pl-5 text-muted-foreground space-y-1 mt-1">
-                                        {message.feedback.grammar.map((point, i) => <li key={i}>{point}</li>)}
-                                      </ul>
-                                    </div>
-                                    <div>
-                                      <h6 className="font-medium">Vocabulary</h6>
-                                      <ul className="list-disc pl-5 text-muted-foreground space-y-1 mt-1">
-                                        {message.feedback.vocabulary.map((point, i) => <li key={i}>{point}</li>)}
-                                      </ul>
-                                    </div>
-                                  </div>
-                                  {/* Column 2 */}
-                                  <div className="space-y-4">
-                                    <div>
-                                      <h6 className="font-medium">Clarity</h6>
-                                      <ul className="list-disc pl-5 text-muted-foreground space-y-1 mt-1">
-                                        {message.feedback.clarity.map((point, i) => <li key={i}>{point}</li>)}
-                                      </ul>
-                                    </div>
-                                    {message.feedback.pronunciation && message.feedback.pronunciation.length > 0 && (
-                                      <div>
-                                        <h6 className="font-medium">Pronunciation</h6>
-                                        <ul className="space-y-2 mt-1">
-                                          {message.feedback.pronunciation.map((p, i) => (
-                                            <li key={i} className="flex items-start gap-2">
-                                              <Button size="sm" variant="outline" className="p-2 h-auto flex-shrink-0" onClick={() => handlePlayPronunciation(p.word)} aria-label={`Listen to ${p.word}`}>
-                                                <SpeakerIcon className="h-4 w-4" />
-                                              </Button>
-                                              <div>
-                                                <strong className="font-semibold">{p.word}</strong>
-                                                <p className="text-muted-foreground text-xs">{p.feedback}</p>
-                                              </div>
-                                            </li>
-                                          ))}
-                                        </ul>
-                                      </div>
-                                    )}
-                                  </div>
+                    </CardHeader>
+                    <CardContent>
+                      <h4 className="font-semibold text-lg mb-4">Conversation & Feedback</h4>
+                      <div className="space-y-6">
+                        {log.transcript.map((message, index) => (
+                            <div key={index}>
+                              <div className={`flex items-start gap-3 ${message.speaker === 'user' ? 'justify-end' : ''}`}>
+                                {message.speaker === 'ai' && <div className="w-8 h-8 rounded-full bg-secondary flex-shrink-0 flex items-center justify-center font-bold text-sm">AI</div>}
+                                <div className={`p-3 rounded-lg max-w-md ${ message.speaker === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground' }`}>
+                                  <p className="text-sm">{message.text}</p>
                                 </div>
-                                {/* Full-width section */}
-                                <div className="pt-4 mt-4 border-t">
-                                  <h6 className="font-medium">Improved Version</h6>
-                                  <p className="text-muted-foreground whitespace-pre-wrap bg-background p-3 rounded-md border mt-1">{message.feedback.improvedVersion}</p>
-                                </div>
+                                {message.speaker === 'user' && <div className="w-8 h-8 rounded-full bg-muted flex-shrink-0 flex items-center justify-center font-bold text-sm">You</div>}
                               </div>
+
+                              {message.speaker === 'user' && message.feedback && (
+                                  <div className="mt-3 flex justify-end">
+                                    <div className="w-full max-w-md space-y-3">
+                                      <div className="p-4 rounded-lg bg-muted/50 border">
+                                        <h5 className="font-semibold mb-3">Feedback on Your Answer</h5>
+                                        <div className="space-y-4 text-sm">
+                                          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                                            {/* Column 1 */}
+                                            <div className="space-y-4">
+                                              <div>
+                                                <h6 className="font-medium">Grammar</h6>
+                                                <ul className="list-disc pl-5 text-muted-foreground space-y-1 mt-1">
+                                                  {message.feedback.grammar.map((point, i) => <li key={i}>{point}</li>)}
+                                                </ul>
+                                              </div>
+                                              <div>
+                                                <h6 className="font-medium">Vocabulary</h6>
+                                                <ul className="list-disc pl-5 text-muted-foreground space-y-1 mt-1">
+                                                  {message.feedback.vocabulary.map((point, i) => <li key={i}>{point}</li>)}
+                                                </ul>
+                                              </div>
+                                            </div>
+                                            {/* Column 2 */}
+                                            <div className="space-y-4">
+                                              <div>
+                                                <h6 className="font-medium">Clarity</h6>
+                                                <ul className="list-disc pl-5 text-muted-foreground space-y-1 mt-1">
+                                                  {message.feedback.clarity.map((point, i) => <li key={i}>{point}</li>)}
+                                                </ul>
+                                              </div>
+                                              {message.feedback.pronunciation && message.feedback.pronunciation.length > 0 && (
+                                                  <div>
+                                                    <h6 className="font-medium">Pronunciation</h6>
+                                                    <ul className="space-y-2 mt-1">
+                                                      {message.feedback.pronunciation.map((p, i) => (
+                                                          <li key={i} className="flex items-start gap-2">
+                                                            <Button size="sm" variant="outline" className="p-2 h-auto flex-shrink-0" onClick={() => handlePlayPronunciation(p.word)} aria-label={`Listen to ${p.word}`}>
+                                                              <SpeakerIcon className="h-4 w-4" />
+                                                            </Button>
+                                                            <div>
+                                                              <strong className="font-semibold">{p.word}</strong>
+                                                              <p className="text-muted-foreground text-xs">{p.feedback}</p>
+                                                            </div>
+                                                          </li>
+                                                      ))}
+                                                    </ul>
+                                                  </div>
+                                              )}
+                                            </div>
+                                          </div>
+                                          {/* Full-width section */}
+                                          <div className="pt-4 mt-4 border-t">
+                                            <h6 className="font-medium">Improved Version</h6>
+                                            <p className="text-muted-foreground whitespace-pre-wrap bg-background p-3 rounded-md border mt-1">{message.feedback.improvedVersion}</p>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                              )}
                             </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-    </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+              ))}
+            </div>
+        )}
+      </div>
   );
 };
 
