@@ -16,7 +16,18 @@ const App: React.FC = () => {
     try {
       const storedLogs = localStorage.getItem('sessionLogs');
       if (storedLogs) {
-        setSessionLogs(JSON.parse(storedLogs));
+        const parsedLogs = JSON.parse(storedLogs) as any[]; // Parse as any to handle old format
+        const migratedLogs: SessionLog[] = parsedLogs.map(log => {
+          // Add a default level to old session logs that don't have one
+          if (log.prompt && !log.prompt.level) {
+            return {
+              ...log,
+              prompt: { ...log.prompt, level: 'Intermediate' }
+            };
+          }
+          return log;
+        });
+        setSessionLogs(migratedLogs);
       }
       const storedVocab = localStorage.getItem('savedVocabulary');
       if (storedVocab) {
@@ -112,19 +123,19 @@ const App: React.FC = () => {
         return <HomePage saveSessionLog={saveSessionLog} />;
       case 'history':
         return (
-          <HistoryPage 
-            sessionLogs={sessionLogs} 
-            updateSessionLog={updateSessionLog}
-            addVocabItems={addVocabItems}
-            markVocabAsGenerated={markVocabAsGenerated}
-          />
+            <HistoryPage
+                sessionLogs={sessionLogs}
+                updateSessionLog={updateSessionLog}
+                addVocabItems={addVocabItems}
+                markVocabAsGenerated={markVocabAsGenerated}
+            />
         );
       case 'vocabulary':
         return (
-          <VocabularyPage
-            savedVocabulary={savedVocabulary}
-            removeVocabItem={removeVocabItem}
-          />
+            <VocabularyPage
+                savedVocabulary={savedVocabulary}
+                removeVocabItem={removeVocabItem}
+            />
         );
       default:
         return <HomePage saveSessionLog={saveSessionLog} />;
@@ -132,12 +143,12 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-      <Header currentPage={page} setPage={setPage} />
-      <main className="container mx-auto p-4 md:p-8">
-        {renderPage()}
-      </main>
-    </div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+        <Header currentPage={page} setPage={setPage} />
+        <main className="container mx-auto p-4 md:p-8">
+          {renderPage()}
+        </main>
+      </div>
   );
 };
 
